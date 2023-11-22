@@ -2,12 +2,11 @@ import axios from 'axios';
 import isUndefined from 'lodash/isUndefined';
 import { keypress } from 'keypress.js';
 import { generateKeypressCombos } from './keypress-utils.js';
-import {
-  backend_keyboards_url,
-  backend_keyboard_list_url
-} from '@/store/modules/constants';
-import { getPreferredLayout, getExclusionList } from '@/util';
-import { localStorageSet, CONSTS } from '@/store/localStorage';
+import { getPreferredLayout } from '@/util';
+import { CONSTS, localStorageSet } from '@/store/localStorage';
+
+import { layout } from './layout.js';
+import { keymap } from './keymap.js';
 
 const steno_keyboards = ['gergo', 'georgi'];
 
@@ -16,31 +15,15 @@ const actions = {
    * fetchKeyboards - fetch keyboard list from API
    */
   async fetchKeyboards({ commit }) {
-    const r = await axios.get(backend_keyboard_list_url);
-    if (r.status === 200) {
-      const exclude = getExclusionList();
-      const results = r.data.keyboards.filter((keeb) => {
-        return isUndefined(exclude[keeb]);
-      });
-      commit('setKeyboards', results);
-      return results;
-    }
-    return [];
+    const results = ['azelus2'];
+    commit('setKeyboards', results);
+    return results;
   },
   /**
    * load the default keymap for the currently selected keyboard
    */
   async loadDefaultKeymap({ state }) {
-    const keyboardPath = state.keyboard.slice(0, 1).toLowerCase();
-    // eslint-disable-next-line
-    const keyboardName = state.keyboard.replace(/\//g, '_');
-    const resp = await axios.get(
-      `keymaps/${keyboardPath}/${keyboardName}_default.json`
-    );
-    if (resp.status === 200) {
-      return resp.data;
-    }
-    return undefined;
+    return keymap;
   },
   /**
    * load keymap from the selected URL
@@ -102,26 +85,15 @@ const actions = {
    * @return {object} promise that is fulfilled once action is complete
    */
   loadLayouts({ commit, state }, preview) {
-    if (!isUndefined(preview)) {
-      preview.layouts['  '] = { layout: [] };
-      let p = new Promise((resolve) => {
-        let fake = {
-          keyboards: {}
-        };
-        fake.keyboards[state.keyboard] = preview;
-        commit('setKeyboardMeta', {});
-        commit('processLayouts', fake);
-        resolve(preview);
-      });
-      return p;
-    }
-    return axios
-      .get(`${backend_keyboards_url}/${state.keyboard}/info.json`)
-      .then((resp) => {
-        commit('setKeyboardMeta', resp);
-        commit('processLayouts', resp);
-        return resp;
-      });
+    let p = new Promise((resolve) => {
+      resolve(layout);
+    });
+
+    p.then((resp) => {
+      commit('setKeyboardMeta', resp);
+      commit('processLayouts', resp);
+      return resp;
+    });
   },
   saveConfiguratorSettings({ state }) {
     localStorageSet(

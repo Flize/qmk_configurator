@@ -1,9 +1,6 @@
-import {
-  localStorageSet,
-  localStorageLoad,
-  CONSTS
-} from '@/store/localStorage';
+import { CONSTS, localStorageLoad } from '@/store/localStorage';
 import osKeyboardLayouts from '@/os_keyboard_layouts';
+import { layout } from './layout.js';
 
 function getDefaultConfiguratorSettings() {
   // detect if OS supports dark mode and set as default
@@ -44,8 +41,10 @@ const state = {
   keyboards: [],
   appInitialized: false,
   _keyboards: [],
-  layout: '',
-  layouts: {},
+  layout: 'LAYOUT',
+  layouts: {
+    LAYOUT: layout['layouts']['LAYOUT']['layout']
+  },
   keymapName: '',
   compileDisabled: false,
   isPreview: false,
